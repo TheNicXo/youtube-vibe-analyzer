@@ -6,3 +6,4 @@ textblob
 plotly
 pandas
 google-genai
+yt-dlp

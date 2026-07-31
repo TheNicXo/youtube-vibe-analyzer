@@ -8,6 +8,8 @@ import pandas as pd
 import google.genai as genai
 from google.genai import types
 import json
+from youtube_extractor import download_audio_from_youtube
+
 
 st.set_page_config(page_title="YouTube Vibe Analyzer", page_icon="🎵", layout="wide")
 
@@ -37,6 +39,11 @@ st.markdown("""
 
 st.title("🚀 YouTube Vibe & Audio Intelligence Analyzer")
 st.write("Analysez la vibe sonore et textuelle de vos fichiers audio avec l'Intelligence Artificielle.")
+
+if "yt_audio_ready" not in st.session_state:
+    st.session_state.yt_audio_ready = False
+    st.session_state.yt_video_title = None
+    st.session_state.yt_video_id = None
 
 
 def analyze_audio_vibe(file_path):
@@ -143,14 +150,47 @@ Réponds UNIQUEMENT avec un JSON valide, sans texte autour, au format :
 #         except Exception as e:
 #             st.error(f"Erreur : {e}")
 
-uploaded_file = st.file_uploader("Choisissez un fichier audio (.wav)", type=["wav"])
+source_mode = st.radio("Source audio", ["Fichier local", "URL YouTube"], horizontal=True)
 
-if uploaded_file is not None:
-    with open("temp_audio.wav", "wb") as f:
-        f.write(uploaded_file.getbuffer())
+audio_ready = False
 
-    st.audio(uploaded_file, format="audio/wav")
+if source_mode == "Fichier local":
+    st.session_state.yt_audio_ready = False  # reset l'état YouTube si on change de mode
+    uploaded_file = st.file_uploader("Choisissez un fichier audio (.wav)", type=["wav"])
+    if uploaded_file is not None:
+        with open("temp_audio.wav", "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        st.audio(uploaded_file, format="audio/wav")
+        audio_ready = True
 
+else:
+    youtube_url = st.text_input("Colle l'URL YouTube ici")
+    cookiefile = st.text_input(
+        "Chemin vers ton fichier cookies.txt (optionnel, réduit les blocages YouTube)",
+        placeholder="ex: /Users/toi/cookies.txt"
+    )
+    if youtube_url and st.button("📥 Télécharger l'audio depuis YouTube"):
+        with st.spinner("Téléchargement et extraction audio en cours..."):
+            try:
+                result = download_audio_from_youtube(
+                    youtube_url,
+                    output_path="temp_audio",
+                    cookiefile=cookiefile if cookiefile else None
+                )
+                st.session_state.yt_audio_ready = True
+                st.session_state.yt_video_title = result["title"]
+                st.session_state.yt_video_id = result["video_id"]
+            except Exception as e:
+                st.session_state.yt_audio_ready = False
+                st.error(f"❌ Échec du téléchargement : {e}")
+                st.info("Si l'erreur mentionne un blocage ou une authentification, fournis un fichier cookies.txt exporté depuis ton navigateur.")
+
+    if st.session_state.yt_audio_ready:
+        st.success(f"Audio extrait : {st.session_state.yt_video_title}")
+        st.audio("temp_audio.wav", format="audio/wav")
+        audio_ready = True
+
+if audio_ready:
     if st.button("🔥 Lancer l'Analyse d'Intelligence Multimodale"):
         with st.spinner("Analyse en cours... Veuillez patienter (Traitement Signal + NLP)..."):
 

@@ -5,3 +5,5 @@ __pycache__/
 *.wav
 temp_audio.wav
 .DS_Store
+cookies.txt
+*cookies*.txt
