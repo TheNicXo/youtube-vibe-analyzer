@@ -1,0 +1,8 @@
+streamlit
+librosa
+numpy
+openai-whisper
+textblob
+plotly
+pandas
+google-genai
