@@ -7,3 +7,11 @@ plotly
 pandas
 google-genai
 yt-dlp
+requests
+reportlab
+kaleido
+fastapi
+uvicorn
+celery
+redis
+python-multipart

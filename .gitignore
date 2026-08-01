@@ -7,3 +7,5 @@ temp_audio.wav
 .DS_Store
 cookies.txt
 *cookies*.txt
+audio_cache/
+dump.rdb
